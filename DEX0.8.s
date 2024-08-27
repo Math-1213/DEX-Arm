@@ -1,0 +1,231 @@
+//r0  -> Seven Segment Adress
+//r1  -> Button Adress
+//r2  -> Switch Adress
+//r3  -> Button Content
+//r4  -> Switch Content
+//r5  -> State:(0: DEC -> 1: HEX ->)
+//r6  -> Aux decimal Conversor
+//r7  -> Unidade
+//r8  -> Decimal
+//r9  -> Valor
+//r10 -> Anterior
+//r11 -> Bit Shift
+//r12 -> Number To be Displayed
+
+.data
+
+
+.data
+
+
+    .text
+    .global _start
+_start:
+
+    // Inicialização
+    ldr r0, =0xff200020   // Endereço do Display de Sete Segmentos
+    ldr r1, =0xff200050   // Endereço do Botão
+    ldr r2, =0xff200040   // Endereço do Switch
+    mov r3, #0            // Conteúdo do botão
+    mov r4, #0            // Conteúdo do switch
+    mov r5, #0            // Estado: 0 = DEC, 1 = HEX
+	mov r10, #0           // Numero Anterior (inicialmente zero)
+    mov r11, #0           // Bit Shift (inicialmente zero)
+    mov r12, #0           // Número a ser exibido
+
+_loop:
+    // Verifica se o botão foi pressionado
+	mov r11, #0
+	mov r10, #0
+	mov r12, #0
+	mov r9, #0
+	
+    ldr r3, [r1]
+    cmp r3, #1
+    beq _button_pressed_load
+	cmp r3, #2
+    beq _button_pressed_convert
+    b _loop
+	
+_button_pressed_load:
+	ldr r3, [r1]
+    cmp r3, #0       
+    beq _button_released_load 
+    b _button_pressed_load
+	
+_button_pressed_convert:
+	ldr r3, [r1]
+    cmp r3, #0         
+    beq _button_released_convert 
+    b _button_pressed_convert
+	
+_button_released_load:
+    // Atualiza o conteúdo do switch
+    ldr r4, [r2]
+	mov r5, #1
+	b _predecimal
+	
+_button_released_convert:
+    
+	// Verifica o estado: Decimal ou Hexadecimal
+    cmp r5, #1
+	beq _predecimal
+    b _prehex
+
+_predecimal:
+	mov r7,r4
+	b _decimal
+	
+_prehex:
+	mov r7,r4
+	b _hex
+
+_decimal:
+    // Muda o estado para Decimal
+    mov r5, #0
+	cmp r7, #9
+	ble _posdecimal
+	
+	// Caso r4 >= 9
+	mov r8,#0
+	_division_dec:
+	sub r7,r7,#10
+	add r8,r8,#1
+	
+	cmp r7, #9
+	bge _division_dec
+	b _posdecimal
+
+_hex:
+    // Muda o estado para Hexadecimal
+    mov r5, #1
+	cmp r7, #15
+	ble _posdecimal
+	
+	// Caso r4 >= 16
+	mov r8,#0
+	_division_hex:
+	sub r7,r7,#16
+	add r8,r8,#1
+	
+	cmp r7, #15
+	bge _division_hex
+	b _posdecimal
+
+_posdecimal:
+	mov r9,r7
+	mov r7,r8
+	mov r8,#0
+	b _encoder
+
+_encoder:
+	
+    // Converte e exibe o número
+    cmp r9, #0
+    beq _0
+    cmp r9, #1
+    beq _1
+    cmp r9, #2
+    beq _2
+    cmp r9, #3
+    beq _3
+    cmp r9, #4
+    beq _4
+    cmp r9, #5
+    beq _5
+    cmp r9, #6
+    beq _6
+    cmp r9, #7
+    beq _7
+    cmp r9, #8
+    beq _8
+    cmp r9, #9
+    beq _9
+    cmp r9, #10
+    beq _A
+    cmp r9, #11
+    beq _B
+    cmp r9, #12
+    beq _C
+    cmp r9, #13
+    beq _D
+    cmp r9, #14
+    beq _E
+    cmp r9, #15
+    beq _F
+    b _loop
+
+_0:
+    mov r12, #63   // 0 -> 0111111
+    b _display
+
+_1:
+    mov r12, #6    // 1 -> 0000110
+    b _display
+
+_2:
+    mov r12, #91   // 2 -> 1011011
+    b _display
+
+_3:
+    mov r12, #79   // 3 -> 1001111
+    b _display
+
+_4:
+    mov r12, #102  // 4 -> 1100110
+    b _display
+
+_5:
+    mov r12, #109  // 5 -> 1101101
+    b _display
+
+_6:
+    mov r12, #125  // 6 -> 1111101
+    b _display
+
+_7:
+    mov r12, #7    // 7 -> 0000111
+    b _display
+
+_8:
+    mov r12, #127  // 8 -> 1111111
+    b _display
+
+_9:
+    mov r12, #103  // 9 -> 1100111
+    b _display
+
+_A:
+    mov r12, #119  // A -> 1110111
+    b _display
+
+_B:
+    mov r12, #124  // B -> 11111100
+    b _display
+
+_C:
+    mov r12, #57   // C -> 0111001
+    b _display
+
+_D:
+    mov r12, #94   // D -> 1011110
+    b _display
+
+_E:
+    mov r12, #121  // E -> 1111001
+    b _display
+
+_F:
+    mov r12, #113  // F -> 1110001
+
+_display:
+	
+	lsl r12,r12,r11
+	orr r12,r12,r10
+    str r12, [r0] 
+	mov r10,r12
+	cmp r7,#0
+	beq _loop
+	add r11,#8
+	b _decimal
+    b _loop       // Volta ao início do loop
