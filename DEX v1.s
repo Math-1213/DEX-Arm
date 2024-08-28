@@ -227,5 +227,9 @@ _display:
 	cmp r7,#0
 	beq _loop
 	add r11,#8
-	b _decimal
-    b _loop       // Volta ao início do loop
+	b _jump
+	
+_jump:
+	cmp r5,#0
+	beq _decimal
+	b _hex
