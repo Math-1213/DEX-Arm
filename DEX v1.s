@@ -93,7 +93,7 @@ _decimal:
 	add r8,r8,#1
 	
 	cmp r7, #9
-	bge _division_dec
+	bgt _division_dec
 	b _posdecimal
 
 _hex:
