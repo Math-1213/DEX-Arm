@@ -109,7 +109,7 @@ _hex:
 	add r8,r8,#1
 	
 	cmp r7, #15
-	bge _division_hex
+	bgt _division_hex
 	b _posdecimal
 
 _posdecimal:
