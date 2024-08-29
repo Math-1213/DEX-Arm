@@ -73,14 +73,26 @@ _button_released_convert:
     b _prehex
 
 _predecimal:
+	//LOAD D
+	ldr r0, =0xff200030
+	mov r12, #0x5e00
+	str r12, [r0] 
+	ldr r0, =0xff200020
+
 	mov r7,r4
 	b _decimal
 	
 _prehex:
+	//LOAD H 
+	ldr r0, =0xff200030
+	mov r12, #0x7600	
+	str r12, [r0] 
+	ldr r0, =0xff200020
+	
 	mov r7,r4
 	b _hex
 
-_decimal:
+_decimal:	
     // Muda o estado para Decimal
     mov r5, #0
 	cmp r7, #9
@@ -96,7 +108,7 @@ _decimal:
 	bgt _division_dec
 	b _posdecimal
 
-_hex:
+_hex:	
     // Muda o estado para Hexadecimal
     mov r5, #1
 	cmp r7, #15
